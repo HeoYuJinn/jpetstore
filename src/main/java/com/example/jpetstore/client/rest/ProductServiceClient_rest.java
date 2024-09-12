@@ -1,4 +1,4 @@
-package com.example.jpetstore.service.client.rest;
+package com.example.jpetstore.client.rest;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -18,38 +18,35 @@ public class ProductServiceClient_rest {
 	private static String productSvcUrl = "http://" + host + ":" + port + appContext;
 
 	public static void main(String[] args) {
-		simpleGet();
-
 		// test getProduct
 		getForObjectByVariableArg("K9-BD-01", "K9-PO-02");
 		getForObjectByVariableMap("FL-DLH-02");
-
+		
 		// test createProduct
 		Product product = new Product();
-		product.setProductId("FL-DMC-03");
+		product.setProductId("fl-doc-03");
 		product.setCategoryId("CATS");
 		product.setName("Maine Coon");
 		product.setDescription("메인 쿤");
-		postForLocation(product);
+		String newProductUri = postForLocation(product);
+		
+		product = restTemplate.getForObject(newProductUri, Product.class);
+		System.out.println("get the product by URI: " + product);
 		
 		// test updateProduct
-		put("FL-DMC-03", "CATS", "Korean Shorthair", "한국 고양이");
-		getForObjectByVariableMap("FL-DMC-03");
-
+		put("fl-doc-03", "CATS", "Korean Shorthair", "한국 고양이");
+		
+		product = restTemplate.getForObject(newProductUri, Product.class);
+		System.out.println("get the product by URI: " + product);
+		
 		// test deleteProduct
-		delete("FL-DMC-03");
+		delete("fl-doc-03");
 		
 		// test RestClientException
 		catchException();
 		
 		// test RestTemplate.exchange()
 		// exchange();				
-	}
-
-	private static void simpleGet() {
-		System.out.println("\n[simpleGet]");
-		String body = restTemplate.getForObject("https://www.dongduk.ac.kr/", String.class);
-		System.out.println(body);
 	}
 
 	private static void getForObjectByVariableArg(String prodId1, String prodId2) {
@@ -76,12 +73,13 @@ public class ProductServiceClient_rest {
 		System.out.println("Response as an object: " + product2);
 	}
 
-	private static void postForLocation(Product product) {
+	private static String postForLocation(Product product) {
 		System.out.println("\n[postForLocation]");
 		URI uri = restTemplate.postForLocation(productSvcUrl, product);
 		String uriStr = uri.toString();		
 		System.out.println(product + " created.");
 		System.out.println("New Product URI: " + uriStr);
+		return uriStr;
 	}
 
 	private static void put(String prodId, String categoryId, String name, String desc) {
